@@ -9,12 +9,35 @@
         </section>
 
         <section class="elementor-section hero-image-section">
-            <a href="#konsultasi" class="booking-button mt-4">Booking Now</a>
+            <button @click="showModal = true" class="booking-button mt-4">Booking Now</button>
             <img src="/images/homescreen.png"
                 alt="Tampak depan perumahan Royal Grande">
         </section>
+
+        <!-- Gunakan Component Modal Terpisah -->
+        <ConsultationModal 
+            :isVisible="showModal" 
+            :salesData="salesData" 
+            @close="showModal = false" 
+        />
     </div>
 </template>
+
+<script>
+export default {
+    props: {
+        salesData: {
+            type: Object,
+            default: null
+        }
+    },
+    data() {
+        return {
+            showModal: false
+        }
+    }
+}
+</script>
 
 <style scoped>
 .hero-title-section {
@@ -56,8 +79,15 @@
     color: var(--color-white);
     padding: 15px 30px;
     border-radius: 8px;
+    border: none;
+    cursor: pointer;
     z-index: 2;
     font-weight: 700;
+    transition: opacity 0.3s;
+}
+
+.hero-image-section .booking-button:hover {
+    opacity: 0.9;
 }
 
 .hero-image-section img {
