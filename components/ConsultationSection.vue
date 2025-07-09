@@ -1,0 +1,583 @@
+<!-- components/ConsultationSection.vue -->
+<template>
+    <section id="konsultasi" class="elementor-section">
+        <div class="elementor-container image-container">
+            <img src="/images/konsultasi-gratis-img.png"
+                alt="Konsultasi Gratis dengan Sales">
+        </div>
+        <div class="elementor-container form-container-wrapper">
+            <div class="elementor-widget-wrap">
+                <h2>konsultasi gratis</h2>
+                <form @submit.prevent="submitForm">
+                    <div class="form-field">
+                        <label for="name">Nama</label>
+                        <input type="text" id="name" v-model="form.name" placeholder="Cth. Johnson" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" v-model="form.phone" placeholder="Cth. 08123456789"
+                            pattern="08[0-9]{7,11}" minlength="9" maxlength="13" required>
+                        <small v-if="phoneError" class="error-text">{{ phoneError }}</small>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="province">Provinsi</label>
+                        <select id="province" v-model="form.province_id" @change="onProvinceChange" required>
+                            <option value="">Pilih Provinsi</option>
+                            <option v-for="province in provinces" :key="province.id" :value="province.id">
+                                {{ province.province }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-field" v-show="form.province_id">
+                        <label for="city">Kota/Kabupaten</label>
+                        <select id="city" v-model="form.city_id" @change="onCityChange"
+                            :disabled="!form.province_id || loadingCities" required>
+                            <option value="">{{ loadingCities ? 'Loading...' : 'Pilih Kota/Kabupaten' }}</option>
+                            <option v-for="city in cities" :key="city.id" :value="city.id">
+                                {{ city.city }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-field" v-show="form.city_id">
+                        <label for="district">Kecamatan (Opsional)</label>
+                        <select id="district" v-model="form.district_id" @change="onDistrictChange"
+                            :disabled="!form.city_id || loadingDistricts">
+                            <option value="">{{ loadingDistricts ? 'Loading...' : 'Pilih Kecamatan' }}</option>
+                            <option v-for="district in districts" :key="district.id" :value="district.id">
+                                {{ district.kecamatan }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-field" v-show="form.district_id">
+                        <label for="subdistrict">Kelurahan/Desa (Opsional)</label>
+                        <select id="subdistrict" v-model="form.subdistrict_id"
+                            :disabled="!form.district_id || loadingSubdistricts">
+                            <option value="">{{ loadingSubdistricts ? 'Loading...' : 'Pilih Kelurahan/Desa' }}</option>
+                            <option v-for="subdistrict in subdistricts" :key="subdistrict.id" :value="subdistrict.id">
+                                {{ subdistrict.kelurahan }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <button type="submit" :disabled="isSubmitting">
+                        {{ isSubmitting ? 'Mengirim...' : 'Kirim' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Custom Notification Modal -->
+        <div v-if="showNotification" class="notification-overlay" @click="hideNotification">
+            <div class="notification-modal" :class="notificationType" @click.stop>
+                <div class="notification-icon">
+                    <i v-if="notificationType === 'success'" class="fas fa-check-circle"></i>
+                    <i v-if="notificationType === 'error'" class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="notification-content">
+                    <h3>{{ notificationType === 'success' ? 'Berhasil!' : 'Oops!' }}</h3>
+                    <p>{{ notificationMessage }}</p>
+                </div>
+                <button class="notification-close" @click="hideNotification">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+</template>
+
+<script>
+export default {
+    props: {
+        salesData: {
+            type: Object,
+            default: null
+        },
+        computed: {
+            whatsappQuickLink() {
+                if (this.salesData) {
+                    const message = encodeURIComponent(`Halo ${this.salesData.name}, saya ingin konsultasi tentang Royal Grande Residences.`)
+                    return this.salesData.whatsapp
+                }
+                return 'https://wa.me/6285195080000'
+            }
+        }
+    },
+    data() {
+        return {
+            form: {
+                name: '',
+                phone: '',
+                province_id: '',
+                city_id: '',
+                district_id: '',
+                subdistrict_id: ''
+            },
+            provinces: [],
+            cities: [],
+            districts: [],
+            subdistricts: [],
+            loadingCities: false,
+            loadingDistricts: false,
+            loadingSubdistricts: false,
+            isSubmitting: false,
+            phoneError: '',
+            urlParams: {
+                full_path_ref: '',
+                utm_campaign: '',
+                utm_medium: '',
+                utm_source: ''
+            },
+            showNotification: false,
+            notificationMessage: '',
+            notificationType: 'success'
+        }
+    },
+    async mounted() {
+        console.log('Sales data:', this.salesData)
+        this.extractUrlParams()
+        await this.fetchProvinces()
+    },
+    methods: {
+        extractUrlParams() {
+            if (process.client) {
+                const url = new URL(window.location.href)
+                const searchParams = url.searchParams
+                
+                // Extract URL parameters
+                this.urlParams = {
+                    full_path_ref: url.href, // Full current URL
+                    utm_campaign: searchParams.get('utm_campaign') || '',
+                    utm_medium: searchParams.get('utm_medium') || '',
+                    utm_source: searchParams.get('utm_source') || ''
+                }
+                
+                console.log('Extracted URL params:', this.urlParams)
+            }
+        },
+        showSuccessNotification(message) {
+            this.notificationMessage = message
+            this.notificationType = 'success'
+            this.showNotification = true
+            setTimeout(() => this.hideNotification(), 5000)
+        },
+        showErrorNotification(message) {
+            this.notificationMessage = message
+            this.notificationType = 'error'
+            this.showNotification = true
+            setTimeout(() => this.hideNotification(), 5000)
+        },
+        hideNotification() {
+            this.showNotification = false
+            setTimeout(() => this.notificationMessage = '', 300)
+        },
+        async fetchProvinces() {
+            try {
+                const response = await fetch('https://crm.exanara.id/api/province')
+                const provinces = await response.json()
+
+                // Urutkan agar Sumatera Selatan (ID 33) berada di atas
+                this.provinces = provinces.sort((a, b) => {
+                    if (a.id === 3) return -1  // Sumatera Selatan ke atas
+                    if (b.id === 3) return 1   // Sumatera Selatan ke atas
+                    return a.province.localeCompare(b.province) // Sisanya diurutkan alfabetis
+                })
+            } catch (error) {
+                console.error('Error fetching provinces:', error)
+                this.showErrorNotification('Gagal memuat data provinsi. Silakan refresh halaman.')
+            }
+        },
+
+        async onProvinceChange() {
+            this.form.city_id = ''
+            this.form.district_id = ''
+            this.form.subdistrict_id = ''
+            this.cities = []
+            this.districts = []
+            this.subdistricts = []
+
+            if (!this.form.province_id) return
+
+            this.loadingCities = true
+            try {
+                const response = await fetch(`https://crm.exanara.id/api/city/${this.form.province_id}`)
+                this.cities = await response.json()
+            } catch (error) {
+                console.error('Error fetching cities:', error)
+                this.showErrorNotification('Gagal memuat data kota. Silakan coba lagi.')
+            } finally {
+                this.loadingCities = false
+            }
+        },
+
+        async onCityChange() {
+            this.form.district_id = ''
+            this.form.subdistrict_id = ''
+            this.districts = []
+            this.subdistricts = []
+
+            if (!this.form.city_id) return
+
+            this.loadingDistricts = true
+            try {
+                const response = await fetch(`https://crm.exanara.id/api/getkecamatan/${this.form.city_id}`)
+                this.districts = await response.json()
+            } catch (error) {
+                console.error('Error fetching districts:', error)
+                this.showErrorNotification('Gagal memuat data kecamatan. Silakan coba lagi.')
+            } finally {
+                this.loadingDistricts = false
+            }
+        },
+
+        async onDistrictChange() {
+            this.form.subdistrict_id = ''
+            this.subdistricts = []
+
+            if (!this.form.district_id) return
+
+            this.loadingSubdistricts = true
+            try {
+                const response = await fetch(`https://crm.exanara.id/api/getkelurahan/${this.form.district_id}`)
+                this.subdistricts = await response.json()
+            } catch (error) {
+                console.error('Error fetching subdistricts:', error)
+                this.showErrorNotification('Gagal memuat data kelurahan. Silakan coba lagi.')
+            } finally {
+                this.loadingSubdistricts = false
+            }
+        },
+
+        validatePhone() {
+            const phone = this.form.phone
+            this.phoneError = ''
+
+            if (!phone) {
+                this.phoneError = 'Nomor telepon wajib diisi'
+                return false
+            }
+
+            if (!phone.startsWith('08')) {
+                this.phoneError = 'Nomor telepon harus dimulai dengan 08'
+                return false
+            }
+
+            if (phone.length < 9 || phone.length > 13) {
+                this.phoneError = 'Nomor telepon harus antara 9-13 digit'
+                return false
+            }
+
+            if (!/^08[0-9]+$/.test(phone)) {
+                this.phoneError = 'Nomor telepon hanya boleh berisi angka'
+                return false
+            }
+
+            return true
+        },
+
+        async submitForm() {
+            if (!this.validatePhone()) {
+                return
+            }
+
+            this.isSubmitting = true
+
+            try {
+                const response = await fetch('https://crm.exanara.id/api/prospect/website', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sales_id: this.salesData ? this.salesData.id : null,
+                        project_id: 48,
+                        nama_prospect: this.form.name,
+                        hp: this.form.phone,
+                        province_id: parseInt(this.form.province_id),
+                        city_id: parseInt(this.form.city_id),
+                        district_id: parseInt(this.form.district_id),
+                        subdistrict_id: parseInt(this.form.subdistrict_id),
+                        full_path_ref: this.urlParams.full_path_ref,
+                        utm_campaign: this.urlParams.utm_campaign,
+                        utm_medium: this.urlParams.utm_medium,
+                        utm_source: this.urlParams.utm_source
+                    })
+                })
+
+                response.json().then(data => {
+                    if (data?.meta?.status === 'success') {
+                        this.showSuccessNotification('Terima kasih! Data Anda telah berhasil dikirim. Tim kami akan segera menghubungi Anda.')
+
+                        // Reset form
+                        this.form = {
+                            name: '',
+                            phone: '',
+                            province_id: '',
+                            city_id: '',
+                            district_id: '',
+                            subdistrict_id: ''
+                        }
+                        this.cities = []
+                        this.districts = []
+                        this.subdistricts = []
+                    } else {
+                        alert(data?.meta?.message)
+                    }
+                })
+            } catch (error) {
+                console.error('Error submitting form:', error)
+                this.showErrorNotification('Terjadi kesalahan saat mengirim data. Silakan coba lagi.')
+            } finally {
+                this.isSubmitting = false
+            }
+        }
+    },
+    watch: {
+        'form.phone'() {
+            if (this.phoneError) {
+                this.validatePhone()
+            }
+        }
+    }
+}
+</script>
+
+<style scoped>
+#konsultasi {
+    align-items: center;
+    padding: 0 100px;
+}
+
+#konsultasi .image-container,
+#konsultasi .form-container-wrapper {
+    flex: 1;
+}
+
+#konsultasi .image-container img {
+    width: 100%;
+}
+
+#konsultasi h2 {
+    font-family: var(--font-primary);
+    font-size: 48px;
+    letter-spacing: -2px;
+    text-transform: capitalize;
+}
+
+.form-container-wrapper form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-container-wrapper .form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container-wrapper label {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.form-container-wrapper input,
+.form-container-wrapper textarea,
+.form-container-wrapper select {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #E2E2E2;
+    font-family: var(--font-secondary);
+    font-size: 14px;
+}
+
+.form-container-wrapper select:disabled {
+    background-color: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.form-container-wrapper button {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.form-container-wrapper button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.form-container-wrapper button:hover:not(:disabled) {
+    opacity: 0.9;
+    transition: opacity 0.3s;
+}
+
+.error-text {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Custom Notification Styles */
+.notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.notification-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  text-align: center;
+}
+
+.notification-modal.success {
+  border-top: 4px solid #27AE60;
+}
+
+.notification-modal.error {
+  border-top: 4px solid #E74C3C;
+}
+
+.notification-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.notification-modal.success .notification-icon {
+  color: #27AE60;
+}
+
+.notification-modal.error .notification-icon {
+  color: #E74C3C;
+}
+
+.notification-content h3 {
+  font-family: var(--font-primary);
+  font-size: 24px;
+  margin: 0 0 15px 0;
+  color: var(--color-text);
+}
+
+.notification-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0 0 20px 0;
+}
+
+.notification-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.notification-close:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.notification-actions {
+  margin-top: 20px;
+}
+
+.notification-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  background-color: #25D366;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  gap: 8px;
+}
+
+.notification-whatsapp:hover {
+  background-color: #128C7E;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .notification-modal {
+    padding: 25px 20px;
+    margin: 20px;
+  }
+  
+  .notification-icon {
+    font-size: 36px;
+    margin-bottom: 15px;
+  }
+  
+  .notification-content h3 {
+    font-size: 20px;
+  }
+  
+  .notification-content p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 1024px) {
+    #konsultasi {
+        flex-direction: column;
+        padding: 50px 20px;
+        gap: 30px;
+    }
+}
+</style>
