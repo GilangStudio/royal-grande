@@ -2,8 +2,31 @@
 <template>
   <div>
     <NuxtPage />
+
+    <FloatingWhatsappButton :salesData="salesData" />
   </div>
 </template>
+
+<script setup>
+// Import sales config untuk mendapatkan data sales default
+import { salesConfig } from '~/config/sales.js'
+
+// Gunakan sales pertama sebagai default jika tidak ada sales yang spesifik
+const salesData = ref(salesConfig[0] || null)
+
+// Jika ini adalah halaman sales specific, ambil data sales yang sesuai
+onMounted(() => {
+  if (process.client) {
+    const route = useRoute()
+    if (route.params.salesId) {
+      const foundSales = salesConfig.find(sales => sales.route === `/${route.params.salesId}`)
+      if (foundSales) {
+        salesData.value = foundSales
+      }
+    }
+  }
+})
+</script>
 
 <style>
 :root {

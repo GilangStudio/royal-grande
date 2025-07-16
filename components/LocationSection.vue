@@ -11,7 +11,17 @@
             </a>
             <p>atau</p>
             <h3>Kunjungi Sekarang</h3>
-            <p>Jl. Lkr. Selatan, Pangkalan Gelebak, Kec. Rambutan, Kab. Banyuasin, Sumatera Selatan, 30967</p>
+            <!-- <p>Jl. Lkr. Selatan, Pangkalan Gelebak, Kec. Rambutan, Kab. Banyuasin, Sumatera Selatan, 30967</p> -->
+            <div class="office-address-section">
+                <h5>Marketing Gallery</h5>
+                <p>Jl. Lkr. Selatan, Pangkalan Gelebak, Kec. Rambutan, Kab. Banyuasin, Sumatera Selatan, 30967</p>
+                <br>
+                <h5>Head Office</h5>
+                <p>PT TERRAKON ANUGERAH GEMILANG</p>
+                <p>ROYAL RESSORT RESIDENCE BLOK RA NO 10 JL TEGAL BINANGUN,<br>
+                Desa/Kelurahan Sungai Kedukan, Kec. Rambutan, Kab. Banyuasin,<br>
+                Provinsi Sumatera Selatan, 30967</p>
+            </div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/royalgrande.id" target="_blank">
                     <i class="fab fa-facebook"></i>
@@ -35,6 +45,10 @@
 </template>
 
 <style scoped>
+h5 {
+    color: var(--bs-heading-color);
+}
+
 #lokasi {
     justify-content: center;
     align-items: center;

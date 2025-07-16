@@ -5,7 +5,7 @@
       <img src="/images/logo-royal-grande.png" alt="Logo Royal Grande">
     </div>
     <div class="elementor-container copyright-container justify-content-end">
-      <p>Copyright © 2025 Royal Grande Residences - All Right Reserved</p>
+      <p>Copyright © 2025 PT TERRAKON ANUGERAH GEMILANG - All Right Reserved</p>
     </div>
   </footer>
 </template>

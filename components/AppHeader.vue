@@ -11,8 +11,8 @@
             <nav>
                 <ul class="main-menu">
                     <li><a href="#home">Home</a></li>
-                    <li><a href="#testimoni">Testimoni</a></li>
                     <li><a href="#residences">Residences</a></li>
+                    <li><a href="#testimoni">Testimoni</a></li>
                     <li><a href="#konsultasi">Contact</a></li>
                 </ul>
             </nav>
