@@ -283,7 +283,7 @@ export default {
             this.isSubmitting = true
 
             try {
-                const response = await fetch('https://crm.exanara.id/api/prospect/websiteee', {
+                const response = await fetch('https://crm.exanara.id/api/prospect/website', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
