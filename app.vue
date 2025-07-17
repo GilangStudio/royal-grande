@@ -3,7 +3,7 @@
   <div>
     <NuxtPage />
 
-    <FloatingWhatsappButton :salesData="salesData" />
+    <FloatingButton :salesData="salesData" />
   </div>
 </template>
 
