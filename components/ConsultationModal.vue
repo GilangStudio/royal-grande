@@ -4,14 +4,14 @@
         <div v-if="isVisible" class="modal-overlay" @click="closeModal">
             <div class="modal-container" @click.stop>
                 <div class="modal-header">
-                    <h2>Konsultasi Gratis</h2>
+                    <h2>Booking Now</h2>
                     <button class="modal-close" @click="closeModal">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="modal-content">
                     <!-- <div class="modal-image">
-                        <img src="/images/konsultasi-gratis-img.png" alt="Konsultasi Gratis dengan Sales">
+                        <img src="/images/konsultasi-gratis-img.png" alt="Booking Now dengan Sales">
                     </div> -->
                     <div class="modal-form">
                         <form @submit.prevent="submitForm">

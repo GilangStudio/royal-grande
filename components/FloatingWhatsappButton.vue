@@ -7,7 +7,7 @@
                 <i class="fab fa-whatsapp"></i>
             </div>
             <div class="whatsapp-text">
-                <span>Konsultasi Gratis</span>
+                <span>Booking Now</span>
             </div>
         </div>
 

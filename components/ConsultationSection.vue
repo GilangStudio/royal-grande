@@ -7,13 +7,13 @@
         </div>
         <div class="elementor-container cta-container-wrapper">
             <div class="elementor-widget-wrap">
-                <h2>konsultasi gratis</h2>
+                <h2>Booking Now</h2>
                 <p class="cta-description">
                     Dapatkan konsultasi gratis dari tim ahli kami untuk membantu Anda memilih hunian impian di Royal Grande Residences.
                 </p>
                 <div class="cta-buttons">
                     <button @click="showModal = true" class="primary-cta-button">
-                        Konsultasi Sekarang
+                        Booking Now
                     </button>
                     <!-- <a v-if="salesData" :href="whatsappQuickLink" class="whatsapp-cta-button" target="_blank">
                         <i class="fab fa-whatsapp"></i>
