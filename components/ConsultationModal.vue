@@ -69,7 +69,7 @@
                                 </select>
                             </div>
 
-                            <button type="submit" :disabled="isSubmitting">
+                            <button type="submit" :disabled="isSubmitting" @click="trackLeadEvent">
                                 {{ isSubmitting ? 'Mengirim...' : 'Kirim' }}
                             </button>
                         </form>
@@ -145,6 +145,28 @@ export default {
         await this.fetchProvinces()
     },
     methods: {
+          trackLeadEvent() {
+
+            const currency = document.querySelector('meta[name="currency"]')?.content || 'IDR';
+            const value = parseFloat(document.querySelector('meta[name="price"]')?.content || '0');
+
+            if (typeof fbq !== 'undefined') {
+                fbq('track', 'Lead Form', {
+                    cs_est: true,
+                    currency: currency,
+                    value: value
+                });
+            }
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'generate_lead', {
+                    currency: currency,
+                    value: value,
+                    lead_source: 'whatsapp_widget',
+                    content_name: 'Royal Grande Residence',
+                    custom_parameter_1: 'cs_est_true'
+                });
+            }
+        },
         closeModal() {
             this.$emit('close')
         },

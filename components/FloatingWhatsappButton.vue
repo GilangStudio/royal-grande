@@ -36,7 +36,8 @@ export default {
     methods: {
         openModal() {
             this.showModal = true
-        }
+        },
+        
     }
 }
 </script>
